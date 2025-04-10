@@ -1,0 +1,22 @@
+# Core dependencies
+fastapi==0.109.1
+uvicorn==0.27.0
+python-multipart==0.0.6
+Jinja2==3.1.3
+
+# Text extraction and document processing
+pdfplumber==0.10.3
+python-docx==0.8.11
+
+# NLP and Machine Learning
+torch==2.2.1
+transformers==4.38.2
+scikit-learn==1.4.0
+pandas==2.2.0
+tqdm==4.66.1
+
+# Utility packages
+numpy==1.26.3
+requests==2.31.0
+logging==0.4.9.6
+python-json-logger==2.0.7

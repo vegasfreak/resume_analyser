@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Resume Parser Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .resume-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .resume-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+        .score {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        .contact-info {
+            margin-bottom: 15px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+        .skills-list, .experience-list, .leadership-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .skills-list li, .experience-list li, .leadership-list li {
+            background: #f8f9fa;
+            margin-bottom: 8px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .upload-form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Resume analyzer</h1>
+        
+        <div class="upload-form">
+            <h2>Upload Resumes</h2>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <input type="file" name="files" multiple accept=".pdf,.docx,.txt">
+                <button type="submit">Upload</button>
+                
+            </form>
+        </div>
+        
+        <div id="resultsContainer"></div>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            const files = document.querySelector('input[type="file"]').files;
+            
+            for (let i = 0; i < files.length; i++) {
+                formData.append('files', files[i]);
+            }
+            
+            try {
+                const response = await fetch('/upload/', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                displayResults(data.results);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error uploading files');
+            }
+        });
+        
+        function displayResults(resumes) {
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = '<h2>Parsed Resumes</h2>';
+            
+            if (resumes.length === 0) {
+                container.innerHTML += '<p>No resumes were processed.</p>';
+                return;
+            }
+            
+            resumes.forEach(resume => {
+                const details = JSON.parse(resume.Details);
+                
+                const resumeCard = document.createElement('div');
+                resumeCard.className = 'resume-card';
+                
+                resumeCard.innerHTML = `
+                    <div class="resume-header">
+                        <div>
+                            <h3>${resume.Name}</h3>
+                            <div class="contact-info">
+                                ${resume.Email ? `<p>Email: ${resume.Email}</p>` : ''}
+                                ${resume.Contact && resume.Contact !== 'N/A' ? `<p>Phone: ${resume.Contact}</p>` : ''}
+                            </div>
+                        </div>
+                        <div class="score">Score: ${resume.Score}</div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Summary</div>
+                        <p>${details.Summary || 'No summary available'}</p>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Industry</div>
+                        <p>${resume.Industry}</p>
+                    </div>
+                    
+                    ${details.Skills && details.Skills.length > 0 ? `
+                    <div class="section">
+                        <div class="section-title">Skills</div>
+                        <ul class="skills-list">
+                            ${details.Skills.map(skill => `<li>${skill}</li>`).join('')}
+                        </ul>
+                    </div>
+                    ` : ''}
+                    
+                    ${details.Experience && details.Experience.length > 0 ? `
+                    <div class="section">
+                        <div class="section-title">Experience</div>
+                        <ul class="experience-list">
+                            ${details.Experience.map(exp => `<li>${exp}</li>`).join('')}
+                        </ul>
+                    </div>
+                    ` : ''}
+                    
+                    ${details.Leadership && details.Leadership.length > 0 ? `
+                    <div class="section">
+                        <div class="section-title">Leadership</div>
+                        <ul class="leadership-list">
+                            ${details.Leadership.map(lead => `<li>${lead}</li>`).join('')}
+                        </ul>
+                    </div>
+                    ` : ''}
+                `;
+                
+                container.appendChild(resumeCard);
+            });
+        }
+    </script>
+</body>
+</html>
